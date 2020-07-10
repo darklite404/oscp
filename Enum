@@ -21,9 +21,12 @@ nc -z -v -u 192.168.44.1 137
 nmap -sSUC -p111 192.168.44.1
 
 # SMB ENUM
+nmap -p 445 -vv --script=smb-vuln-cve2009-3103.nse,smb-vuln-ms06-025.nse,smb-vuln-ms07-029.nse,smb-vuln-ms08-067.nse,smb-vuln-ms10-054.nse,smb-vuln-ms10-061.nse,smb-vuln-ms17-010.nse 192.168.44.1
+nmap -p 445 -vv --script=smb-enum-shares.nse,smb-enum-users.nse 192.168.44.1
 enum4linux 192.168.44.1
 smbclient //192.168.44.1/anonymous -I 192.168.44.1
 smbclient //192.168.44.1/alex -I 192.168.44.1 -U alex
+rpcclient -U "" 192.168.44.1
 smb: \> get proof.txt
 
 # HTTP ENUM DIR
