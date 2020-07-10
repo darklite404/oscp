@@ -6,7 +6,7 @@ cd AutoRecon/src/autorecon/
 python3 autorecon.py 192.168.44.1
 python3 autorecon.py -t /root/Desktop/oscplist.txt
 
-# NMAP
+# NMAP TCP & UDP
 nmap -sU -sV -vv -oA quick_udp 192.168.44.1
 nmap -sU -O -p- -oA udp 192.168.44.1
 nmap -sC -sV -p- 192.168.44.1
@@ -16,6 +16,16 @@ nmap -p- -vv --script vuln,discovery 192.168.44.1
 nc -z -v -u 192.168.44.1 137
 192.168.1.99: inverse host lookup failed: Unknown host
 (UNKNOWN) [192.168.1.99] 137 (netbios-ns) open
+
+# SNMP UDP 161
+apt-get install snmp-mibs-downloader
+
+https://wiki.debian.org/SNMP
+vi /etc/snmp/snmp.conf
+Comment out the line that reads
+mibs :
+
+snmp-check 192.168.44.1 -c public
 
 # PORT 111
 nmap -sSUC -p111 192.168.44.1
