@@ -41,8 +41,8 @@ rpcclient -U "" 192.168.44.1
 smb: \> get proof.txt
 
 # HTTP ENUM DIR
-gobuster dir -u http://192.168.44.1 -w /usr/share/wordlists/dirb/common.txt -x .php,.txt,.html
-gobuster dir -u http://192.168.44.1 -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt
+gobuster dir -u http://192.168.44.1 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+gobuster dir -u http://192.168.44.1 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x .php,.txt,.html
 nikto -host 192.168.44.1 -port 80
 http://192.168.44.1/robots.txt
 
