@@ -1,0 +1,14 @@
+# Linux
+
+python -c 'import pty;pty.spawn("/bin/bash")'
+/usr/bin/script -qc /bin/bash /dev/null
+
+## winpeas linpeas 
+
+https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite
+
+Checker Priv
+
+https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/
+https://payatu.com/guide-linux-privilege-escalation
+http://www.fuzzysecurity.com/tutorials/16.html
