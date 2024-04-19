@@ -1,0 +1,90 @@
+Import-Module ConvertTo-Csv
+
+# Function for efficient CSV processing with filtering (reusable)
+function Process-CsvFile ($filePath, $header, $filterScriptBlock) {
+  # Open the CSV file using efficient StreamReader
+  $reader = New-Object System.IO.StreamReader($filePath)
+
+  # Skip the header row (if present)
+  $reader.ReadLine()
+
+  try {
+    # Process each line using efficient foreach with optimized conditional logic
+    $results = @()  # Empty array to store processed data
+    while (($line = $reader.ReadLine()) -ne $null) {
+      $columns = $line.Split(',')
+      $userObject = New-Object PSObject -Property @{
+        username = $columns[$header.IndexOf("username")]
+        email = $columns[$header.IndexOf("email")]
+      }
+
+      # Apply filtering logic using $filterScriptBlock for flexibility
+      if ($filterScriptBlock($userObject)) {
+        $results += $userObject
+      }
+    }
+    $results
+  } finally {
+    # Always close the reader to release resources
+    $reader.Close()
+  }
+}
+
+# Set CSV file paths and headers
+$asFilePath = "C:\path\to\AS.csv"
+$adFilePath = "C:\path\to\AD.csv"
+$asHeader = "username", "email"
+$adHeader = "SamAccountName", "UserPrincipalName"
+
+# Define filter script blocks for matching users
+$normalUserFilter = { param($user) ($user.username -eq $_.username) -and ($user.email -eq $_.email) }
+$orphanUserFilter = { param($user) !$($ASData | Where-Object { ($_.username -eq $user.username) -and ($_.email -eq $user.email) }) }
+
+# Process CSV files and store results in arrays
+$ASData = Process-CsvFile -filePath $asFilePath -header $asHeader -filterScriptBlock {}
+$ADData = Process-CsvFile -filePath $adFilePath -header $adHeader -filterScriptBlock {}
+
+# Find normal users (optimized with single loop & hashtable)
+$normalUsers = @()
+$normalUserHash = @{}  # Hashtable for efficient lookup by username/email combination
+$ASData | ForEach-Object {
+  $key = "$($_.username)-$($_.email)"
+  if (!$normalUserHash.ContainsKey($key)) {
+    $normalUserHash[$key] = $true
+    $normalUsers += $_
+  }
+}
+
+# Find orphan users
+$orphanUsers = @()
+$ADData | ForEach-Object {
+  $key = "$($_.SamAccountName)-$($_.UserPrincipalName)"
+  if (!$normalUserHash.ContainsKey($key)) {
+    $orphanUser = New-Object PSObject -Property @{
+      username = $_.SamAccountName
+      email = $_.UserPrincipalName
+      file = "AD.csv"
+    }
+    $orphanUsers += $orphanUser
+  }
+}
+
+# Optional additional orphan user check (for potential duplicates in AD)
+# (Uncomment if needed)
+# foreach ($adUser in $ADData) {
+#   if (!$normalUsers -contains ($adUser | ConvertTo-Json)) {
+#     $orphanUser = New-Object PSObject -Property @{
+#       username = $adUser.SamAccountName
+#       email = $adUser.UserPrincipalName
+#       file = "AD.csv"
+#     }
+#     $orphanUsers += $orphanUser
+#   }
+# }
+
+# Export results to CSV files (optional formatting)
+$normalUsers | Export-Csv -Path 'AD-normal.csv' -NoTypeInformation -Append -Encoding UTF8
+$orphanUsers | Export-Csv -Path 'AD-orphan.csv' -NoTypeInformation -Append -Encoding UTF8
+
+# Clear intermediate variables for memory efficiency
+Remove-Variable ASData, ADData, normalUserHash
